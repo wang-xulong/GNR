@@ -14,11 +14,11 @@ module load Anaconda3/5.3.0
 # Load cuda
 module load cuDNN/8.0.4.30-CUDA-11.1.1
 # Activate conda
-source activate GNR
-
-pip install -r requirements.txt
+source activate avalanche
 
 cd /home/acq21xw/GNR
+
+pip install -r requirements.txt
 
 python main.py
 
