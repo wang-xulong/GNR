@@ -10,14 +10,14 @@ from avalanche.training.plugins.lr_scheduling import LRSchedulerPlugin
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from avalanche.training.supervised import Naive
 from avalanche.evaluation.metrics import (forgetting_metrics, accuracy_metrics, bwt_metrics,
-                                          loss_metrics, forward_transfer_metrics, disk_usage_metrics)
+                                          loss_metrics)
 from avalanche.logging import InteractiveLogger
 from avalanche.training.plugins import EvaluationPlugin
 from plugins.customise_plugin import GetLr, MyEarlyStoppingPlugin
 from plugins.customise_logger import MyWandBLogger
 from plugins.gnr import GNRPlugin
 
-# test!!
+
 def run(args):
     torch.manual_seed(args.seed)
     device = torch.device(f"cuda:{args.cuda}" if torch.cuda.is_available() and args.cuda >= 0 else "cpu")
@@ -115,7 +115,6 @@ def main(args):
 
             print(args)
             run(args)
-            wandb.finish()
 
 
 if __name__ == "__main__":
