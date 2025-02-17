@@ -27,6 +27,7 @@ def run(args):
     # initiate model
     model = MTAlexnet(
         drop1=args.drop1, drop2=args.drop2)
+    a = model.get_feature_extractor_names()
     # Benchmark
     benchmark = SplitCIFAR100(n_experiences=args.n_experiences, seed=args.seed, return_task_id=True,
                               class_ids_from_zero_in_each_exp=True)
@@ -63,7 +64,7 @@ def run(args):
         optimizer=optimizer,
         criterion=criterion,
         train_mb_size=args.batch_size,
-        train_epochs=400,
+        train_epochs=args.epochs,
         eval_mb_size=args.batch_size,
         device=device,
         evaluator=eval_plugin,
@@ -94,19 +95,11 @@ def assign_plugin_hyperparameters(args):
 
 def main(args):
     for plugin in ['gnr']:
-        seeds = [1, 2, 3, 4, 5]  # 默认随机种子列表
+        seeds = [1, 2, 3, 4, 5]  # default random seeds
         for seed in seeds:
             print(f"Running experiment with seed {seed}...")
-            # loading hyperparameters
+            # Set the seed and hyperparameters from args (they already have defaults)
             args.seed = seed
-            args.n_experiences = 10
-            args.drop1 = 0.2
-            args.drop2 = 0.2
-            args.patience = 10
-            args.eval_every = 5
-            args.batch_size = 64
-            args.init_lr = 0.1
-            args.min_lr = 1e-3
             args.plugin = plugin
             assign_plugin_hyperparameters(args)
 
@@ -125,6 +118,16 @@ if __name__ == "__main__":
         default=0,
         help="Select zero-indexed cuda device. -1 to use CPU.",
     )
-    parsed_args = parser.parse_args()
+    # Add hyperparameter arguments with defaults
+    parser.add_argument("--n_experiences", type=int, default=10, help="Number of experiences.")
+    parser.add_argument("--drop1", type=float, default=0.2, help="Dropout probability for the first dropout layer.")
+    parser.add_argument("--drop2", type=float, default=0.2, help="Dropout probability for the second dropout layer.")
+    parser.add_argument("--patience", type=int, default=10, help="Patience for early stopping.")
+    parser.add_argument("--eval_every", type=int, default=5, help="Evaluation frequency (in epochs).")
+    parser.add_argument("--epochs", type=int, default=200, help="Number of training epochs.")
+    parser.add_argument("--batch_size", type=int, default=64, help="Batch size for training.")
+    parser.add_argument("--init_lr", type=float, default=0.1, help="Initial learning rate.")
+    parser.add_argument("--min_lr", type=float, default=1e-3, help="Minimum learning rate.")
 
+    parsed_args = parser.parse_args()
     main(parsed_args)

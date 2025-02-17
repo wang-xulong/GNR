@@ -69,7 +69,6 @@ class Alexnet(nn.Module):
         x = self.classifier(x)
         return x
 
-    # 新增的方法，用于提取特征提取器和分类器
     def get_feature_extractor(self):
         return nn.Sequential(self.conv_features,
                              nn.Flatten(),
@@ -78,29 +77,16 @@ class Alexnet(nn.Module):
     def get_classifier(self):
         return self.classifier
 
-
-class ICAlexnet(Alexnet, MultiTaskModule):
-    """
-    Multi-task version of AlexNet using MultiHeadClassifier.
-    """
-
-    def __init__(self, input_size=(3, 32), num_classes=100, drop1=0.5, drop2=0.5):
-        super().__init__(input_size, num_classes, drop1, drop2)
-        # Replace single-task classifier with multi-head classifier
-        self.classifier = IncrementalClassifier(in_features=2048,
-                                                # initial_out_features=initial_out_features,
-                                                # masking=False,
-                                                )
-
-    def forward(self, x, task_labels):
-        # Use inherited feature extraction from Alexnet
-        x = self.conv_features(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc_features(x)
-
-        # Multi-task classification
-        x = self.classifier(x)
-        return x
+    def get_feature_extractor_names(self):
+        """
+        Get the names of the feature extraction modules.
+        Returns a list of names (e.g., ['conv_features', 'fc_features']).
+        """
+        feature_names = []
+        for name, module in self.named_children():
+            if "features" in name:
+                feature_names.append(name)
+        return feature_names
 
 
 class MTAlexnet(Alexnet, MultiTaskModule):
@@ -127,4 +113,4 @@ class MTAlexnet(Alexnet, MultiTaskModule):
         return x
 
 
-__all__ = ["Alexnet", "MTAlexnet", "ICAlexnet"]
+__all__ = ["Alexnet", "MTAlexnet"]

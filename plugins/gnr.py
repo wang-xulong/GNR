@@ -8,33 +8,43 @@ from torch.nn.utils import clip_grad_norm_
 from avalanche.models.dynamic_modules import MultiHeadClassifier
 
 
-def wrap_feature_extraction_layers(model):
+def wrap_feature_extraction_layers(model, feature_extractor_names):
     """
-    Obtain the target modules (Conv2d and Linear) of the feature extraction layer in the model, exclude the
-    classification layer, and replace these layers with the SPG-packaged version.
+    Obtain the target modules (Conv2d and Linear) from the feature extraction layers in the model,
+    excluding the classification layer, and replace these layers with the SPG-packaged version.
+
+    Args:
+        model (nn.Module): The model containing the layers to be wrapped.
+        feature_extractor_names (list of str): List of names (e.g., ['conv_features', 'fc_features'])
+                                               indicating which modules to target.
+
+    Returns:
+        list of tuples: Each tuple contains (name_module, wrapped_module).
     """
     conv_and_linear_layers = []
 
     for name_module, module in model.named_modules():
-        #  Filter criteria: Conv2d or Linear and paths in conv_features or fc_features
+        # Filter criteria: module is Conv2d or Linear and its name is under one of the specified feature extraction
+        # modules
         if isinstance(module, (nn.Conv2d, nn.Linear)) and \
-                ('conv_features' in name_module or 'fc_features' in name_module):
+                any(feat_name in name_module for feat_name in feature_extractor_names):
 
-            # Gets the name of the parent and current module
+            # Get the name of the parent module and the current module
             parent_name = '.'.join(name_module.split('.')[:-1])
             child_name = name_module.split('.')[-1]
 
-            # Get parent module
+            # Retrieve the parent module
             parent_module = model
             if parent_name:
                 for sub_name in parent_name.split('.'):
                     parent_module = getattr(parent_module, sub_name)
 
+            # Wrap the module using SPG
             wrapped_module = SPG(module)
             setattr(parent_module, child_name, wrapped_module)
 
             conv_and_linear_layers.append((name_module, getattr(parent_module, child_name)))
-            print(f"Replaced {name_module} with SPG")
+            print(f"Replaced {name_module} with soft masking module.")
 
     return conv_and_linear_layers
 
@@ -59,7 +69,7 @@ class GNRPlugin(SupervisedPlugin):
 
         if idx_task == 0:
             print("Initializing softmask for the first task...")
-            self.feature_extraction_spg = wrap_feature_extraction_layers(model)
+            self.feature_extraction_spg = wrap_feature_extraction_layers(model, model.get_feature_extractor_names())
 
     def after_backward(self, strategy: Template, *args, **kwargs):
         alpha = self.alpha
