@@ -8,8 +8,8 @@ This repository provides a modular and extensible framework for evaluating conti
 ├── main_C_baseline.py         # Main script to run experiments
 ├── model.py                   # Network architecture (MTAlexNet)
 ├── plugins/                   # Custom plugins including GNR and SPG
-│   ├── gnr.py                 # Gradient Norm Regularisation plugin
-│   ├── spg.py                 # Soft-masking Parameter Gradient plugin
+│   ├── gnr.py                 # Gradient-Norm-Aware update
+│   ├── spg.py                 # Gradient-Norm-Aware consolidation
 │   ├── customise_plugin.py    # Early stopping, LR getter, etc.
 │   └── ...                    # Other utility plugins
 ├── README.md
