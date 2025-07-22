@@ -1,0 +1,9 @@
+avalanche_lib==0.6.0
+matplotlib==3.10.3
+numpy==2.3.1
+pandas==2.3.1
+Pillow==11.3.0
+pytz==2024.2
+scikit_learn==1.7.1
+torch==2.5.0+cu118
+wandb==0.21.0
